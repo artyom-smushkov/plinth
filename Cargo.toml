@@ -1,0 +1,19 @@
+[package]
+name = "plinth"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+itertools = "0.14"
+mpd = "0.1.0"
+iced = { version = "0.14", features=["image", "tokio", "canvas"]}
+image = "0.25"
+dirs = "6.0"
+toml = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["rt-multi-thread", "sync", "macros", "rt", "time"] }
+async-stream = "0.3"
+
+[dev-dependencies]
+iced_runtime = "0.14"
+futures = "0.3"
