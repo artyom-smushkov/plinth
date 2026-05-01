@@ -88,16 +88,14 @@ impl AlbumGrid {
                         });
                     }
                 }
+            } else if groups.is_empty() {
+                groups.push(Group {
+                    label: String::new(),
+                    widgets: vec![AlbumWidget::new(album.clone(), Some(i), AlbumDisplayOption::Grid, grid_thumbnail_size)],
+                });
             } else {
-                if groups.is_empty() {
-                    groups.push(Group {
-                        label: String::new(),
-                        widgets: vec![AlbumWidget::new(album.clone(), Some(i), AlbumDisplayOption::Grid, grid_thumbnail_size)],
-                    });
-                } else {
-                    groups[0].widgets
-                        .push(AlbumWidget::new(album.clone(), Some(i), AlbumDisplayOption::Grid, grid_thumbnail_size));
-                }
+                groups[0].widgets
+                    .push(AlbumWidget::new(album.clone(), Some(i), AlbumDisplayOption::Grid, grid_thumbnail_size));
             }
         }
 

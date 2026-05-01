@@ -93,7 +93,7 @@ impl Program<Message> for ProgressBar {
         );
         frame.fill(&track, self.track_color);
 
-        let fill_width = (bounds.width * self.ratio.min(1.0).max(0.0)).round();
+        let fill_width = (bounds.width * self.ratio.clamp(0.0, 1.0)).round();
         if fill_width > 0.0 {
             let fill_path = Path::rectangle(
                 Point::new(bounds.x, y),
@@ -104,7 +104,7 @@ impl Program<Message> for ProgressBar {
 
         let radius = 5.0;
         let cap_y = y + track_height / 2.0;
-        let cap_x = bounds.x + bounds.width * self.ratio.min(1.0).max(0.0);
+        let cap_x = bounds.x + bounds.width * self.ratio.clamp(0.0, 1.0);
         if self.ratio > 0.0 && self.ratio < 1.0 {
             let circle = Path::circle(Point::new(cap_x, cap_y), radius);
             frame.fill(&circle, self.accent);
@@ -127,6 +127,13 @@ impl Program<Message> for ProgressBar {
     }
 }
 
+struct ButtonStyle {
+    hover_bg: Color,
+    normal_text: Color,
+    hover_text: Color,
+    disabled_text: Color,
+}
+
 pub struct PlayerControl {
     hovered: Option<Control>,
 }
@@ -147,52 +154,21 @@ impl PlayerControl {
         icon: &'static str,
         control: Control,
         message: Message,
-        hover_bg: Color,
-        normal_text: Color,
-        hover_text: Color,
-    ) -> Element<'static, Message> {
-        let hovered = self.hovered == Some(control);
-        let background = if hovered {
-            hover_bg
-        } else {
-            Color::from_rgba(0.0, 0.0, 0.0, 0.0)
-        };
-        let text_color = if hovered { hover_text } else { normal_text };
-
-        mouse_area(container(text(icon).size(22)).padding(8).style(move |_| {
-            container::Style::default()
-                .background(Background::Color(background))
-                .color(text_color)
-        }))
-        .on_enter(Message::ControlHovered(control))
-        .on_exit(Message::ControlUnhovered(control))
-        .on_press(message)
-        .into()
-    }
-
-    fn control_button_disabled(
-        &self,
-        icon: &'static str,
-        control: Control,
-        message: Message,
-        hover_bg: Color,
-        normal_text: Color,
-        hover_text: Color,
+        style: &ButtonStyle,
         disabled: bool,
-        disabled_text: Color,
     ) -> Element<'static, Message> {
-        let hovered = self.hovered == Some(control) && !disabled;
-        let background = if hovered {
-            hover_bg
+        let is_hovered = self.hovered == Some(control) && !disabled;
+        let background = if is_hovered {
+            style.hover_bg
         } else {
             Color::from_rgba(0.0, 0.0, 0.0, 0.0)
         };
         let text_color = if disabled {
-            disabled_text
-        } else if hovered {
-            hover_text
+            style.disabled_text
+        } else if is_hovered {
+            style.hover_text
         } else {
-            normal_text
+            style.normal_text
         };
 
         mouse_area(container(text(icon).size(22)).padding(8).style(move |_| {
@@ -209,16 +185,18 @@ impl PlayerControl {
     pub fn view(&self, playback_state: State, elapsed_secs: Option<f64>, duration_secs: Option<f64>, settings: &AppSettings, current_view: View, is_reload_pending: bool) -> Element<'_, Message> {
         let theme = settings.theme();
         let extended = theme.extended_palette();
-        let hover_bg = extended.background.weak.color;
-        let normal_text = extended.secondary.weak.color;
-        let hover_text = extended.background.base.text;
         let accent = extended.primary.strong.color;
-        let disabled_text = Color::from_rgba(
-            extended.secondary.weak.color.r,
-            extended.secondary.weak.color.g,
-            extended.secondary.weak.color.b,
-            0.4,
-        );
+        let style = ButtonStyle {
+            hover_bg: extended.background.weak.color,
+            normal_text: extended.secondary.weak.color,
+            hover_text: extended.background.base.text,
+            disabled_text: Color::from_rgba(
+                extended.secondary.weak.color.r,
+                extended.secondary.weak.color.g,
+                extended.secondary.weak.color.b,
+                0.4,
+            ),
+        };
 
         let ratio = match (elapsed_secs, duration_secs) {
             (Some(elapsed), Some(duration)) if duration > 0.0 => (elapsed / duration) as f32,
@@ -238,30 +216,9 @@ impl PlayerControl {
             .height(Length::Fixed(12.0));
 
         let left_controls = row![
-            self.control_button(
-                "▦",
-                Control::AlbumGrid,
-                Message::AlbumGridButtonClicked,
-                hover_bg,
-                normal_text,
-                hover_text,
-            ),
-            self.control_button(
-                "♬",
-                Control::NowPlaying,
-                Message::NowPlayingButtonClicked,
-                hover_bg,
-                normal_text,
-                hover_text,
-            ),
-            self.control_button(
-                "⚙",
-                Control::Settings,
-                Message::SettingsButtonClicked,
-                hover_bg,
-                normal_text,
-                hover_text,
-            ),
+            self.control_button("▦", Control::AlbumGrid, Message::AlbumGridButtonClicked, &style, false),
+            self.control_button("♬", Control::NowPlaying, Message::NowPlayingButtonClicked, &style, false),
+            self.control_button("⚙", Control::Settings, Message::SettingsButtonClicked, &style, false),
         ]
         .spacing(6)
         .width(Length::FillPortion(1));
@@ -273,68 +230,31 @@ impl PlayerControl {
         };
 
         let transport_controls = row![
-            self.control_button(
-                "|◀",
-                Control::PreviousSong,
-                Message::PreviousSong,
-                hover_bg,
-                normal_text,
-                hover_text,
-            ),
-            self.control_button(
-                play_icon,
-                Control::PlayPause,
-                Message::PlayPause,
-                hover_bg,
-                normal_text,
-                hover_text,
-            ),
-            self.control_button(
-                "▶|",
-                Control::NextSong,
-                Message::NextSong,
-                hover_bg,
-                normal_text,
-                hover_text,
-            ),
+            self.control_button("|◀", Control::PreviousSong, Message::PreviousSong, &style, false),
+            self.control_button(play_icon, Control::PlayPause, Message::PlayPause, &style, false),
+            self.control_button("▶|", Control::NextSong, Message::NextSong, &style, false),
         ]
         .spacing(6);
 
         let right_controls = if current_view == View::NowPlaying {
             row![
                 container(text("")).width(Length::Fill),
-                self.control_button(
-                    "🗑",
-                    Control::ClearQueue,
-                    Message::ClearQueue,
-                    hover_bg,
-                    normal_text,
-                    hover_text,
-                ),
+                self.control_button("🗑", Control::ClearQueue, Message::ClearQueue, &style, false),
             ]
             .spacing(0)
             .width(Length::FillPortion(1))
             .align_y(iced::Alignment::Center)
         } else if current_view == View::AlbumGrid {
-             let (reload_icon, disabled) = if is_reload_pending { ("◷", true) } else { ("↻", false) };
+            let (reload_icon, disabled) = if is_reload_pending { ("◷", true) } else { ("↻", false) };
             row![
                 container(text("")).width(Length::Fill),
-                self.control_button_disabled(
-                    reload_icon,
-                    Control::ReloadDatabase,
-                    Message::ReloadDatabase,
-                    hover_bg,
-                    normal_text,
-                    hover_text,
-                    disabled,
-                    disabled_text,
-                ),
+                self.control_button(reload_icon, Control::ReloadDatabase, Message::ReloadDatabase, &style, disabled),
             ]
             .spacing(0)
             .width(Length::FillPortion(1))
             .align_y(iced::Alignment::Center)
         } else {
-            row![container(text("")).width(Length::Fill)].spacing(0).width(Length::FillPortion(1)).into()
+            row![container(text("")).width(Length::Fill)].spacing(0).width(Length::FillPortion(1))
         };
 
         iced::widget::column![

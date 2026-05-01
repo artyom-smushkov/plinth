@@ -50,7 +50,7 @@ pub struct App {
 pub enum AppState {
     Error(PlaybackClientError),
     Running {
-        main_window: MainWindow,
+        main_window: Box<MainWindow>,
         playback_client: PlaybackClient,
         error: Option<PlaybackClientError>,
         last_elapsed: Option<f64>,
@@ -93,7 +93,7 @@ impl App {
                (
                     Self {
                         state: AppState::Running {
-                            main_window,
+                            main_window: Box::new(main_window),
                             playback_client,
                             error: None,
                             last_elapsed: None,
@@ -141,7 +141,7 @@ impl App {
        (
             Self {
                 state: AppState::Running {
-                    main_window,
+                    main_window: Box::new(main_window),
                     playback_client,
                     error: None,
                     last_elapsed: None,
@@ -160,14 +160,14 @@ impl App {
 
     pub fn main_window(&self) -> Option<&MainWindow> {
         match &self.state {
-            AppState::Running { main_window, .. } => Some(main_window),
+            AppState::Running { main_window, .. } => Some(&**main_window),
             _ => None,
         }
     }
 
     pub fn main_window_mut(&mut self) -> Option<&mut MainWindow> {
         match &mut self.state {
-            AppState::Running { main_window, .. } => Some(main_window),
+            AppState::Running { main_window, .. } => Some(&mut **main_window),
             _ => None,
         }
     }
@@ -225,31 +225,30 @@ impl App {
 
                     let set_state_task = Task::done(Message::SetPlaybackState(state, elapsed, duration, song_pos));
 
-                    if position_changed {
-                        if let Some(pos) = song_pos {
-                            if let Ok(queue) = playback_client.queue.try_borrow() {
-                                let mut cumulative_pos = 0;
-                                for (album_idx, &album_in_queue_idx) in queue.iter().enumerate() {
-                                    let album = &playback_client.albums[album_in_queue_idx];
-                                    let track_count = album.tracks.len();
+                    if position_changed
+                        && let Some(pos) = song_pos
+                        && let Ok(queue) = playback_client.queue.try_borrow()
+                    {
+                        let mut cumulative_pos = 0;
+                        for (album_idx, &album_in_queue_idx) in queue.iter().enumerate() {
+                            let album = &playback_client.albums[album_in_queue_idx];
+                            let track_count = album.tracks.len();
 
-                                    if pos >= cumulative_pos && pos < cumulative_pos + track_count {
-                                        let track_index_in_album = pos - cumulative_pos;
-                                        return Task::batch(vec![
-                                            set_state_task,
-                                            main_window.update(Message::SetCurrentTrack(
-                                                album_idx,
-                                                track_index_in_album,
-                                            )),
-                                        ]);
-                                    }
-                                    cumulative_pos += track_count;
-                                }
+                            if pos >= cumulative_pos && pos < cumulative_pos + track_count {
+                                let track_index_in_album = pos - cumulative_pos;
+                                return Task::batch(vec![
+                                    set_state_task,
+                                    main_window.update(Message::SetCurrentTrack(
+                                        album_idx,
+                                        track_index_in_album,
+                                    )),
+                                ]);
                             }
+                            cumulative_pos += track_count;
                         }
                     }
 
-                    let needs_rebuild = playback_client.queue.try_borrow().map_or(false, |queue| {
+                    let needs_rebuild = playback_client.queue.try_borrow().is_ok_and(|queue| {
                         if queue.is_empty() {
                             return false;
                         }
@@ -289,10 +288,9 @@ impl App {
                 }
                 Message::ProgressSeek(ratio) => {
                     if let Ok((Some(elapsed), Some(duration))) = playback_client.get_elapsed_duration()
+                        && elapsed > 0.0 && duration > 0.0
                     {
-                        if elapsed > 0.0 && duration > 0.0 {
-                            let _ = playback_client.seek_to((ratio as f64) * duration);
-                        }
+                        let _ = playback_client.seek_to((ratio as f64) * duration);
                     }
                     Task::none()
                 }
@@ -402,23 +400,23 @@ impl App {
                 Message::SetPlaybackState(state, elapsed, duration, song_pos) => {
                     let mut tasks = vec![main_window.update(Message::SetPlaybackState(state, elapsed, duration, song_pos))];
 
-                    if let Some(pos) = song_pos {
-                        if let Ok(queue) = playback_client.queue.try_borrow() {
-                            let mut cumulative_pos = 0;
-                            for (album_idx, &album_in_queue_idx) in queue.iter().enumerate() {
-                                let album = &playback_client.albums[album_in_queue_idx];
-                                let track_count = album.tracks.len();
+                    if let Some(pos) = song_pos
+                        && let Ok(queue) = playback_client.queue.try_borrow()
+                    {
+                        let mut cumulative_pos = 0;
+                        for (album_idx, &album_in_queue_idx) in queue.iter().enumerate() {
+                            let album = &playback_client.albums[album_in_queue_idx];
+                            let track_count = album.tracks.len();
 
-                                if pos >= cumulative_pos && pos < cumulative_pos + track_count {
-                                    let track_index_in_album = pos - cumulative_pos;
-                                    tasks.push(main_window.update(Message::SetCurrentTrack(
-                                        album_idx,
-                                        track_index_in_album,
-                                    )));
-                                    break;
-                                }
-                                cumulative_pos += track_count;
+                            if pos >= cumulative_pos && pos < cumulative_pos + track_count {
+                                let track_index_in_album = pos - cumulative_pos;
+                                tasks.push(main_window.update(Message::SetCurrentTrack(
+                                    album_idx,
+                                    track_index_in_album,
+                                )));
+                                break;
                             }
+                            cumulative_pos += track_count;
                         }
                     }
 

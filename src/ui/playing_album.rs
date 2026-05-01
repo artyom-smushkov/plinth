@@ -34,6 +34,7 @@ pub struct PlayingAlbumWidget {
     info_widget: AlbumInfoWidget,
     pub(crate) track_widgets: Vec<TrackWidget>,
     current_track_index: usize,
+    #[allow(dead_code)]
     hovered_index: Option<usize>,
     hovered: bool,
 }

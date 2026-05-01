@@ -24,6 +24,8 @@ use super::library::{load_albums, sort_albums};
 use super::types::{Album, AlbumSortConfig, PlaybackCursor};
 use mpd::State;
 
+type FullStatus = (State, Option<f64>, Option<f64>, Option<usize>);
+
 pub struct PlaybackClient {
     pub(crate) albums: Rc<Vec<Rc<Album>>>,
     pub(crate) albums_order: Rc<Vec<usize>>,
@@ -50,7 +52,7 @@ impl PlaybackClient {
         let albums_order = sort_albums(albums.clone(), &sort_config);
 
         Ok(Self {
-            albums: albums,
+            albums,
             albums_order: Rc::new(albums_order),
             sort_config,
             queue: RefCell::new(Vec::new()),
@@ -192,7 +194,7 @@ impl PlaybackClient {
 
         self.queue.borrow_mut().clear();
 
-        let tracks: Vec<_> = self.albums[album_index].tracks.iter().cloned().collect();
+        let tracks: Vec<_> = self.albums[album_index].tracks.to_vec();
 
         self.backend.clear().map_err(|e| {
             PlaybackClientError::MPDRetrieveError(format!(
@@ -220,7 +222,7 @@ impl PlaybackClient {
         self.queue.borrow_mut().push(album_index);
         let queued_album_index = self.queue.borrow().len() - 1;
         self.cursor = Some(Rc::new(PlaybackCursor {
-            queued_album_index: queued_album_index,
+            queued_album_index,
             track_index: 0,
             position_ms: 0,
         }));
@@ -273,7 +275,7 @@ impl PlaybackClient {
 
         self.cursor = Some(Rc::new(PlaybackCursor {
             queued_album_index: queue_index,
-            track_index: track_index,
+            track_index,
             position_ms: 0,
         }));
         Ok(())
@@ -343,7 +345,7 @@ impl PlaybackClient {
 
     pub fn get_full_status(
         &mut self,
-    ) -> Result<(State, Option<f64>, Option<f64>, Option<usize>), PlaybackClientError> {
+    ) -> Result<FullStatus, PlaybackClientError> {
         let status = self.backend.status()?;
         let state = status.state;
         let elapsed = status.elapsed.map(|d| d.as_secs_f64());
@@ -407,7 +409,7 @@ impl PlaybackClient {
     }
 
     fn enqueue_tracks(&mut self, album_index: usize) -> Result<(), PlaybackClientError> {
-        let tracks: Vec<_> = self.albums[album_index].tracks.iter().cloned().collect();
+        let tracks: Vec<_> = self.albums[album_index].tracks.to_vec();
         let album_name = self.albums[album_index].name.clone();
 
         for track in &tracks {

@@ -189,19 +189,19 @@ impl MainWindow {
     }
 
     pub fn is_track_hovered(&self, album_idx: usize, track_idx: usize) -> bool {
-        if let Some(playing_album) = self.now_playing.get_playing_album(album_idx) {
-            if let Some(track_widget) = playing_album.get_track_widget(track_idx) {
-                return track_widget.is_hovered();
-            }
+        if let Some(playing_album) = self.now_playing.get_playing_album(album_idx)
+            && let Some(track_widget) = playing_album.get_track_widget(track_idx)
+        {
+            return track_widget.is_hovered();
         }
         false
     }
 
     pub fn is_track_current(&self, album_idx: usize, track_idx: usize) -> bool {
-        if let Some(playing_album) = self.now_playing.get_playing_album(album_idx) {
-            if let Some(track_widget) = playing_album.get_track_widget(track_idx) {
-                return track_widget.is_current_track();
-            }
+        if let Some(playing_album) = self.now_playing.get_playing_album(album_idx)
+            && let Some(track_widget) = playing_album.get_track_widget(track_idx)
+        {
+            return track_widget.is_current_track();
         }
         false
     }

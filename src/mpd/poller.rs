@@ -29,6 +29,12 @@ static RELOAD_FLAG: OnceLock<Arc<AtomicBool>> = OnceLock::new();
 
 pub struct ReloadFlag;
 
+impl Default for ReloadFlag {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ReloadFlag {
     pub fn new() -> Self {
         RELOAD_FLAG.set(Arc::new(AtomicBool::new(false))).ok();
@@ -46,7 +52,7 @@ impl ReloadFlag {
     }
 
     fn is_set() -> bool {
-        RELOAD_FLAG.get().map_or(false, |f| f.load(Ordering::Relaxed))
+        RELOAD_FLAG.get().is_some_and(|f| f.load(Ordering::Relaxed))
     }
 
     fn clear() {

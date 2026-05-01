@@ -34,7 +34,7 @@ pub struct NowPlayingWidget {
 impl NowPlayingWidget {
     pub fn new(albums: Rc<Vec<Rc<Album>>>, now_playing_thumbnail_size: u32) -> Self {
         Self {
-            albums: albums,
+            albums,
             playing_album_widgets: Vec::new(),
             now_playing_thumbnail_size,
         }
@@ -131,10 +131,10 @@ impl NowPlayingWidget {
                 Task::none()
             }
             Message::RemoveAlbumFromQueue(queue_index) => {
-                if let Some(playing_album) = self.playing_album_widgets.get(queue_index) {
-                    if playing_album.queue_index == queue_index {
-                        return Task::done(Message::RemoveAlbumFromQueue(queue_index));
-                    }
+                if let Some(playing_album) = self.playing_album_widgets.get(queue_index)
+                    && playing_album.queue_index == queue_index
+                {
+                    return Task::done(Message::RemoveAlbumFromQueue(queue_index));
                 }
                 Task::none()
             }

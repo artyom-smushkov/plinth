@@ -71,8 +71,8 @@ impl AlbumWidget {
         thumbnail_size: u32,
     ) -> Self {
         let widget_id = match index {
-            Some(i) => String::from(format!("grid-{i}")),
-            None => String::from(format!("now-playing-{}-{}", album.artist, album.name))
+            Some(i) => format!("grid-{i}"),
+            None => format!("now-playing-{}-{}", album.artist, album.name),
         };
 
         Self {

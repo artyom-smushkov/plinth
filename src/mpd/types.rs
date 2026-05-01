@@ -46,7 +46,7 @@ impl Default for AlbumSortConfig {
 
 impl AlbumSortConfig {
     pub fn levels(&self) -> impl Iterator<Item = AlbumSortField> + '_ {
-        self.highest.into_iter().chain(self.middle.into_iter()).chain(Some(self.lowest))
+        self.highest.into_iter().chain(self.middle).chain(Some(self.lowest))
     }
 }
 

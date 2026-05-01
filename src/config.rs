@@ -168,10 +168,10 @@ impl AppSettings {
 
     pub fn load() -> Self {
         let path = get_config_path();
-        if let Ok(contents) = fs::read_to_string(&path) {
-            if let Ok(settings) = toml::from_str(&contents) {
-                return settings;
-            }
+        if let Ok(contents) = fs::read_to_string(&path)
+            && let Ok(settings) = toml::from_str(&contents)
+        {
+            return settings;
         }
         Self::default()
     }
@@ -200,7 +200,7 @@ impl Default for AppSettings {
 
 fn get_config_path() -> PathBuf {
     dirs::config_dir()
-        .unwrap_or_else(|| std::env::temp_dir())
+        .unwrap_or_else(std::env::temp_dir)
         .join("plinth")
         .join("settings.toml")
 }

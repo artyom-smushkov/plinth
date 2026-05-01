@@ -178,7 +178,7 @@ pub fn parse_tag_number(song: &Song, keys: &[&str]) -> Option<u32> {
 
 fn get_cache_dir() -> PathBuf {
     let cache_dir = cache_dir()
-        .unwrap_or_else(|| std::env::temp_dir())
+        .unwrap_or_else(std::env::temp_dir)
         .join("plinth")
         .join("thumbnails");
     fs::create_dir_all(&cache_dir).ok();
