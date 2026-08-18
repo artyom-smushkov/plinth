@@ -2781,6 +2781,7 @@ dependencies = [
  "iced_runtime",
  "image",
  "itertools",
+ "lyon_path",
  "mpd",
  "serde",
  "tokio",

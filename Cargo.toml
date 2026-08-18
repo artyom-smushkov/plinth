@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 itertools = "0.14"
+lyon_path = "1.0"
 mpd = "0.1.0"
 iced = { version = "0.14", features=["image", "tokio", "canvas"]}
 image = "0.25"

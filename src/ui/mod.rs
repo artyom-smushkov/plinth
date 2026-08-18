@@ -20,7 +20,7 @@ pub mod album_grid;
 mod album_info;
 pub mod main_window;
 pub mod now_playing;
-mod player_control;
+pub mod player_control;
 pub mod playing_album;
 mod settings;
 pub mod track;

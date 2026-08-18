@@ -19,13 +19,14 @@ use std::rc::Rc;
 
 use super::album::{AlbumDisplayOption, AlbumWidget};
 use super::album_info::AlbumInfoWidget;
+use super::player_control::{ControlIcon, Icon};
 use super::track::TrackWidget;
 use crate::config::AppSettings;
 use crate::mpd::types::Album;
 use crate::ui::types::Message;
 use iced::{
     Background, Color, Element, Length, Task,
-    widget::{column, container, mouse_area, row, scrollable, text, Column},
+    widget::{canvas, column, container, mouse_area, row, scrollable, Column},
 };
 
 pub struct PlayingAlbumWidget {
@@ -94,19 +95,23 @@ impl PlayingAlbumWidget {
         let is_hovered = self.hovered;
 
         let remove_button = mouse_area(
-            container(text("×").size(18))
-                .padding([2, 8])
-                .style(move |_| {
-                    let bg = if is_hovered {
-                        Background::Color(hover_bg)
-                    } else {
-                        Background::Color(Color::from_rgba(0.0, 0.0, 0.0, 0.0))
-                    };
-                    let text_color = if is_hovered { hover_text } else { normal_text };
-                    container::Style::default()
-                        .background(bg)
-                        .color(text_color)
-                }),
+            container(
+                canvas(ControlIcon {
+                    icon: Icon::Close,
+                    color: if is_hovered { hover_text } else { normal_text },
+                })
+                .width(Length::Fixed(18.0))
+                .height(Length::Fixed(18.0)),
+            )
+            .padding([2, 8])
+            .style(move |_| {
+                let bg = if is_hovered {
+                    Background::Color(hover_bg)
+                } else {
+                    Background::Color(Color::from_rgba(0.0, 0.0, 0.0, 0.0))
+                };
+                container::Style::default().background(bg)
+            }),
         )
         .on_press(Message::RemoveAlbumFromQueue(qi));
 
