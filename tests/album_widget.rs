@@ -90,3 +90,35 @@ fn album_widget_now_playing_thumbnail() {
     let _ = widget.update(Message::NowPlayingThumbnailReady(wid, result));
     assert!(widget.is_thumbnail_loaded());
 }
+#[test]
+fn set_thumbnail_size_same_size_does_not_reload() {
+    let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
+    let mut widget = AlbumWidget::new(album, Some(0), AlbumDisplayOption::Grid, 450);
+
+    let task = widget.set_thumbnail_size(450);
+    assert!(extract_task_messages(task).is_empty());
+}
+
+#[test]
+fn set_thumbnail_size_new_size_reloads_thumbnail() {
+    let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
+    let mut widget = AlbumWidget::new(album, Some(0), AlbumDisplayOption::Grid, 450);
+
+    let task = widget.set_thumbnail_size(800);
+    let messages = extract_task_messages(task);
+
+    assert_eq!(messages.len(), 1);
+    assert!(matches!(messages[0], Message::GridThumbnailReady(_, _)));
+}
+
+#[test]
+fn set_thumbnail_size_now_playing_reloads_at_new_size() {
+    let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
+    let mut widget = AlbumWidget::new(album, None, AlbumDisplayOption::NowPlaying, 1000);
+
+    let task = widget.set_thumbnail_size(920);
+    let messages = extract_task_messages(task);
+
+    assert_eq!(messages.len(), 1);
+    assert!(matches!(messages[0], Message::NowPlayingThumbnailReady(_, _)));
+}

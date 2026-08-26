@@ -157,9 +157,9 @@ impl MainWindow {
             Message::SettingNowPlayingThumbnailSizeChanged(size) => {
                 self.settings.now_playing_thumbnail_size = size;
                 self.settings.save();
-                self.now_playing.set_thumbnail_size(size);
+                let task = self.now_playing.set_thumbnail_size(size);
                 self.settings_widget.set_settings(self.settings.clone());
-                Task::none()
+                task
             }
             Message::SettingColorschemeChanged(scheme) => {
                 self.apply_colorscheme(scheme);

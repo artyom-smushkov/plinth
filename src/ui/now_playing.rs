@@ -40,8 +40,16 @@ impl NowPlayingWidget {
         }
     }
 
-    pub fn set_thumbnail_size(&mut self, size: u32) {
+    pub fn set_thumbnail_size(&mut self, size: u32) -> Task<Message> {
+        if size == self.now_playing_thumbnail_size {
+            return Task::none();
+        }
         self.now_playing_thumbnail_size = size;
+        Task::batch(
+            self.playing_album_widgets
+                .iter_mut()
+                .map(|widget| widget.set_thumbnail_size(size))
+        )
     }
 
     pub fn playing_album_count(&self) -> usize {

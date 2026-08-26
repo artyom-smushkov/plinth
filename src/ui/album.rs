@@ -107,6 +107,15 @@ impl AlbumWidget {
         task
     }
 
+    pub fn set_thumbnail_size(&mut self, size: u32) -> Task<Message> {
+        if size == self.thumbnail_size {
+            return Task::none();
+        }
+        self.thumbnail_size = size;
+        self.thumbnail_state = ThumbnailState::NotLoaded;
+        self.init()
+    }
+
     pub fn view(&self) -> Element<'_, Message> {
         let cover_size = self.thumbnail_size as f32;
 

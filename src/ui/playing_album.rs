@@ -128,6 +128,10 @@ impl PlayingAlbumWidget {
         self.album_widget.init()
     }
 
+    pub fn set_thumbnail_size(&mut self, size: u32) -> Task<Message> {
+        self.album_widget.set_thumbnail_size(size)
+    }
+
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::TrackClicked(queue_index, track_index) => {

@@ -116,3 +116,41 @@ fn album_grid_rebuild_on_sort_change() {
     let _ = app.update(Message::SettingSortHighestChanged(Some(AlbumSortField::Artist)));
     assert_eq!(app.settings.sort_config.highest, Some(AlbumSortField::Artist));
 }
+
+#[test]
+fn now_playing_size_change_reloads_existing_queue_widgets() {
+    let album = make_album("Album 1", "Artist A", vec![make_track("T1", make_song(1, "T1", 180))]);
+    let backend = MockBackend::new();
+    let mut app = make_app(vec![album], backend);
+
+    let queue = std::cell::RefCell::new(vec![0]);
+    let _ = app.update(Message::SyncQueue(queue));
+
+    let target = app.settings.now_playing_thumbnail_size.saturating_add(20);
+    let task = app.update(Message::SettingNowPlayingThumbnailSizeChanged(target));
+    let messages = extract_task_messages(task);
+
+    assert!(
+        messages.iter().any(|m| matches!(m, Message::NowPlayingThumbnailReady(_, _))),
+        "changing the now playing size must reload thumbnails of already queued albums"
+    );
+}
+
+#[test]
+fn now_playing_size_change_same_size_does_not_reload() {
+    let album = make_album("Album 1", "Artist A", vec![make_track("T1", make_song(1, "T1", 180))]);
+    let backend = MockBackend::new();
+    let mut app = make_app(vec![album], backend);
+
+    let queue = std::cell::RefCell::new(vec![0]);
+    let _ = app.update(Message::SyncQueue(queue));
+
+    let current = app.settings.now_playing_thumbnail_size;
+    let task = app.update(Message::SettingNowPlayingThumbnailSizeChanged(current));
+    let messages = extract_task_messages(task);
+
+    assert!(
+        messages.iter().all(|m| !matches!(m, Message::NowPlayingThumbnailReady(_, _))),
+        "changing to the current size must not reload thumbnails"
+    );
+}
