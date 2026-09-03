@@ -19,9 +19,10 @@ use std::rc::Rc;
 
 use super::album::{AlbumDisplayOption, AlbumWidget};
 use crate::mpd::types::{Album, AlbumSortConfig};
+use crate::ui::main_window::View;
 use crate::ui::types::Message;
 use iced::{
-    widget::{column, container, grid, rule::horizontal, scrollable, text},
+    widget::{column, container, grid, rule::horizontal, scrollable, text, Id},
     Alignment, Element, Length, Padding, Task,
 };
 
@@ -39,6 +40,8 @@ pub struct AlbumGrid {
 }
 
 impl AlbumGrid {
+    pub const SCROLLABLE_ID: Id = Id::new("album-grid");
+
     pub fn new(
         albums: Rc<Vec<Rc<Album>>>,
         albums_order: Rc<Vec<usize>>,
@@ -158,7 +161,12 @@ impl AlbumGrid {
             content = content.push(container(group_content).padding(20.0));
         }
 
-        scrollable(content).into()
+        scrollable(content)
+            .id(Self::SCROLLABLE_ID)
+            .on_scroll(|viewport| {
+                Message::ViewScrolled(View::AlbumGrid, viewport.absolute_offset())
+            })
+            .into()
     }
 
     pub fn group_count(&self) -> usize {

@@ -116,6 +116,38 @@ fn album_grid_rebuild_on_sort_change() {
     let _ = app.update(Message::SettingSortHighestChanged(Some(AlbumSortField::Artist)));
     assert_eq!(app.settings.sort_config.highest, Some(AlbumSortField::Artist));
 }
+#[test]
+fn grid_size_change_applied_when_switching_to_grid_view() {
+    let album = make_album("Album 1", "Artist A", vec![make_track("T1", make_song(1, "T1", 180))]);
+    let backend = MockBackend::new();
+    let mut app = make_app(vec![album], backend);
+
+    let target = app.settings.grid_thumbnail_size.saturating_add(20);
+    let _ = app.update(Message::SettingGridThumbnailSizeChanged(target));
+    let task = app.update(Message::AlbumGridButtonClicked);
+    let messages = extract_task_messages(task);
+
+    assert!(
+        messages.iter().any(|m| matches!(m, Message::GridThumbnailReady(_, _))),
+        "switching to the grid view after a size change must rebuild the grid and reload thumbnails"
+    );
+}
+
+#[test]
+fn grid_view_switch_without_size_change_does_not_rebuild() {
+    let album = make_album("Album 1", "Artist A", vec![make_track("T1", make_song(1, "T1", 180))]);
+    let backend = MockBackend::new();
+    let mut app = make_app(vec![album], backend);
+
+    let _ = app.update(Message::AlbumGridButtonClicked);
+    let task = app.update(Message::AlbumGridButtonClicked);
+    let messages = extract_task_messages(task);
+
+    assert!(
+        messages.iter().all(|m| !matches!(m, Message::GridThumbnailReady(_, _))),
+        "switching to the grid view again without changes must not reload thumbnails"
+    );
+}
 
 #[test]
 fn now_playing_size_change_reloads_existing_queue_widgets() {

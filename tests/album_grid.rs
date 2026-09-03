@@ -128,3 +128,25 @@ fn rebuild_noop_same_config() {
     let messages = extract_task_messages(task);
     assert!(messages.is_empty());
 }
+#[test]
+fn rebuild_with_changed_size_reinitializes_widgets() {
+    let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
+    let albums = Rc::new(vec![album]);
+    let config = AlbumSortConfig::default();
+    let albums_order = plinth::mpd::library::sort_albums(albums.clone(), &config);
+
+    let mut grid = plinth::ui::album_grid::AlbumGrid::new(
+        albums.clone(),
+        Rc::new(albums_order),
+        &config,
+        450,
+    );
+
+    let task = grid.rebuild(&config, 800);
+    let messages = extract_task_messages(task);
+
+    assert_eq!(messages.len(), grid.total_widget_count());
+    assert!(messages
+        .iter()
+        .all(|m| matches!(m, Message::GridThumbnailReady(_, _))));
+}
