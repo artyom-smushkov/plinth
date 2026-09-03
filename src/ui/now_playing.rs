@@ -19,9 +19,10 @@ use std::{cell::RefCell, rc::Rc};
 
 use super::playing_album::PlayingAlbumWidget;
 use crate::mpd::types::Album;
+use crate::ui::main_window::View;
 use crate::ui::types::Message;
 use iced::{
-    widget::{scrollable, Column},
+    widget::{scrollable, Column, Id},
     Element, Task,
 };
 
@@ -32,6 +33,8 @@ pub struct NowPlayingWidget {
 }
 
 impl NowPlayingWidget {
+    pub const SCROLLABLE_ID: Id = Id::new("now-playing");
+
     pub fn new(albums: Rc<Vec<Rc<Album>>>, now_playing_thumbnail_size: u32) -> Self {
         Self {
             albums,
@@ -88,7 +91,11 @@ impl NowPlayingWidget {
                 .spacing(20)
                 .padding(20),
         )
-            .into()
+        .id(Self::SCROLLABLE_ID)
+        .on_scroll(|viewport| {
+            Message::ViewScrolled(View::NowPlaying, viewport.absolute_offset())
+        })
+        .into()
     }
 
     pub fn update(&mut self, message: Message) -> Task<Message> {

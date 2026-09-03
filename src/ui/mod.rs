@@ -22,7 +22,7 @@ pub mod main_window;
 pub mod now_playing;
 pub mod player_control;
 pub mod playing_album;
-mod settings;
+pub mod settings;
 pub mod track;
 pub mod types;
 
@@ -39,7 +39,7 @@ use iced::{
 };
 use mpd::State;
 
-const UI_FONT: Font = Font::with_name("Adwaita Sans");
+pub(crate) const UI_FONT: Font = Font::with_name("Adwaita Sans");
 
 pub struct App {
     pub state: AppState,
@@ -396,7 +396,8 @@ impl App {
                 | Message::SetCurrentTrack(_, _)
                 | Message::SyncQueue(_)
                 | Message::AlbumHovered(_)
-                | Message::AlbumUnhovered(_) => main_window.update(message),
+                | Message::AlbumUnhovered(_)
+                | Message::ViewScrolled(_, _) => main_window.update(message),
                 Message::SetPlaybackState(state, elapsed, duration, song_pos) => {
                     let mut tasks = vec![main_window.update(Message::SetPlaybackState(state, elapsed, duration, song_pos))];
 

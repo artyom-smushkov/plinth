@@ -20,6 +20,8 @@ use std::cell::RefCell;
 use crate::config::ColorScheme;
 use crate::mpd::playback::PlaybackClientError;
 use crate::mpd::types::AlbumSortField;
+use crate::ui::main_window::View;
+use iced::widget::operation::AbsoluteOffset;
 use mpd::State;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -48,6 +50,7 @@ pub enum Message {
     AlbumGridButtonClicked,
     NowPlayingButtonClicked,
     SettingsButtonClicked,
+    ViewScrolled(View, AbsoluteOffset),
     PreviousSong,
     PlayPause,
     NextSong,

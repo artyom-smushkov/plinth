@@ -26,7 +26,7 @@ use crate::mpd::types::{Album, AlbumSortConfig};
 use crate::ui::types::Message;
 use iced::Task;
 use iced::{
-    widget::{column, container},
+    widget::{column, container, operation::AbsoluteOffset},
     Element, Length,
 };
 use mpd::State;
@@ -45,6 +45,9 @@ pub struct MainWindow {
     settings_widget: SettingsWidget,
     playback_state: State,
     current_view: View,
+    album_grid_scroll: AbsoluteOffset,
+    now_playing_scroll: AbsoluteOffset,
+    settings_scroll: AbsoluteOffset,
     elapsed_secs: Option<f64>,
     duration_secs: Option<f64>,
     albums: Rc<Vec<Rc<Album>>>,
@@ -69,6 +72,9 @@ impl MainWindow {
             settings_widget: SettingsWidget::new(settings.clone()),
             playback_state: State::Stop,
             current_view: View::AlbumGrid,
+            album_grid_scroll: AbsoluteOffset::default(),
+            now_playing_scroll: AbsoluteOffset::default(),
+            settings_scroll: AbsoluteOffset::default(),
             elapsed_secs: None,
             duration_secs: None,
             albums,
@@ -79,6 +85,22 @@ impl MainWindow {
 
     pub fn current_view(&self) -> View {
         self.current_view
+    }
+
+    pub fn view_scroll(&self, view: View) -> AbsoluteOffset {
+        match view {
+            View::AlbumGrid => self.album_grid_scroll,
+            View::NowPlaying => self.now_playing_scroll,
+            View::Settings => self.settings_scroll,
+        }
+    }
+
+    fn set_view_scroll(&mut self, view: View, offset: AbsoluteOffset) {
+        match view {
+            View::AlbumGrid => self.album_grid_scroll = offset,
+            View::NowPlaying => self.now_playing_scroll = offset,
+            View::Settings => self.settings_scroll = offset,
+        }
     }
 
     pub fn playback_state(&self) -> State {
@@ -120,14 +142,31 @@ impl MainWindow {
         match message {
             Message::AlbumGridButtonClicked => {
                 self.current_view = View::AlbumGrid;
-                self.album_grid.rebuild(&self.settings.sort_config, self.settings.grid_thumbnail_size)
+                let rebuild = self.album_grid.rebuild(&self.settings.sort_config, self.settings.grid_thumbnail_size);
+                Task::batch(vec![
+                    rebuild,
+                    iced::widget::operation::scroll_to::<Message>(
+                        AlbumGrid::SCROLLABLE_ID,
+                        self.album_grid_scroll,
+                    ),
+                ])
             }
             Message::NowPlayingButtonClicked => {
                 self.current_view = View::NowPlaying;
-                Task::none()
+                iced::widget::operation::scroll_to::<Message>(
+                    NowPlayingWidget::SCROLLABLE_ID,
+                    self.now_playing_scroll,
+                )
             }
             Message::SettingsButtonClicked => {
                 self.current_view = View::Settings;
+                iced::widget::operation::scroll_to::<Message>(
+                    SettingsWidget::SCROLLABLE_ID,
+                    self.settings_scroll,
+                )
+            }
+            Message::ViewScrolled(view, offset) => {
+                self.set_view_scroll(view, offset);
                 Task::none()
             }
             Message::SetPlaybackState(state, elapsed, duration, _) => {
