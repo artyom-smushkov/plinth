@@ -246,7 +246,7 @@ fn app_init_syncs_queue_to_ui_when_non_empty() {
     let client = make_client(vec![album1, album2], backend);
     *client.queue.borrow_mut() = vec![0, 1];
 
-    let (app, task) = plinth::ui::App::with_test_client(client);
+    let (app, task) = app_with_test_client(client);
     let messages = extract_task_messages(task);
 
     assert!(
@@ -269,7 +269,7 @@ fn app_init_no_sync_queue_when_empty() {
     let backend = MockBackend::new();
     let client = make_client(vec![album], backend);
 
-    let (_app, task) = plinth::ui::App::with_test_client(client);
+    let (_app, task) = app_with_test_client(client);
     let messages = extract_task_messages(task);
 
     assert!(
@@ -295,7 +295,7 @@ fn app_init_queue_populates_now_playing() {
     let client = make_client(vec![album], backend);
     client.queue.borrow_mut().push(0);
 
-    let (app, task) = plinth::ui::App::with_test_client(client);
+    let (app, task) = app_with_test_client(client);
     let messages = extract_task_messages(task);
 
     let mut app = app;
@@ -334,7 +334,7 @@ fn divergence_position_mismatch_triggers_rebuild() {
     let mut client = make_client(vec![album1, album2], backend);
     client.queue.borrow_mut().extend([0, 1]);
 
-    let (app, _init_task) = plinth::ui::App::with_test_client(client);
+    let (app, _init_task) = app_with_test_client(client);
 
     let mut app = app;
 
@@ -368,7 +368,7 @@ fn divergence_queue_cleared_externally_triggers_rebuild() {
     let mut client = make_client(vec![album1, album2], backend);
     client.queue.borrow_mut().extend([0, 1]);
 
-    let (app, _init_task) = plinth::ui::App::with_test_client(client);
+    let (app, _init_task) = app_with_test_client(client);
 
     let mut app = app;
 
@@ -392,7 +392,7 @@ fn no_divergence_when_stopped_and_empty() {
     let backend = MockBackend::new();
     let client = make_client(vec![album], backend);
 
-    let (app, _init_task) = plinth::ui::App::with_test_client(client);
+    let (app, _init_task) = app_with_test_client(client);
 
     let mut app = app;
 
@@ -429,7 +429,7 @@ fn no_divergence_when_position_matches() {
     let mut client = make_client(vec![album], backend);
     client.queue.borrow_mut().push(0);
 
-    let (app, _init_task) = plinth::ui::App::with_test_client(client);
+    let (app, _init_task) = app_with_test_client(client);
 
     let mut app = app;
 

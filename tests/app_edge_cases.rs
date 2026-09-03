@@ -118,7 +118,7 @@ fn playback_state_update_status_error_returns_noop() {
     let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
     let backend = FailingMockBackend::failing_on(&["status"]);
     let client = make_client_with(vec![album], backend);
-    let (mut app, _task) = plinth::ui::App::with_test_client(client);
+    let (mut app, _task) = app_with_test_client(client);
 
     let task = app.update(Message::PlaybackStateUpdate {
         state: State::Play,
@@ -153,7 +153,7 @@ fn play_pause_status_error_returns_noop() {
     let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
     let backend = FailingMockBackend::with_state(State::Play, &["status"]);
     let client = make_client_with(vec![album], backend);
-    let (mut app, _task) = plinth::ui::App::with_test_client(client);
+    let (mut app, _task) = app_with_test_client(client);
 
     let task = app.update(Message::PlayPause);
     let messages = extract_task_messages(task);

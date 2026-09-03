@@ -17,6 +17,7 @@
 
 use std::collections::HashSet;
 use std::rc::Rc;
+use std::sync::{Mutex, Once};
 use std::time::Duration;
 
 use futures::StreamExt;
@@ -70,15 +71,36 @@ pub fn make_client_with<B: MpdBackend + 'static>(albums: Vec<Rc<Album>>, backend
     PlaybackClient::new_for_test(Rc::new(albums), Box::new(backend))
 }
 
+static TEST_DIRS_INIT: Mutex<()> = Mutex::new(());
+static TEST_DIRS_READY: Once = Once::new();
+
+fn isolate_user_dirs() {
+    let _guard = TEST_DIRS_INIT.lock().unwrap();
+    TEST_DIRS_READY.call_once(|| {
+        let base = std::env::temp_dir().join(format!("plinth-tests-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(base.join("config"));
+        let _ = std::fs::create_dir_all(base.join("cache"));
+        unsafe {
+            std::env::set_var("XDG_CONFIG_HOME", base.join("config"));
+            std::env::set_var("XDG_CACHE_HOME", base.join("cache"));
+        }
+    });
+}
+
+pub fn app_with_test_client(client: PlaybackClient) -> (App, Task<Message>) {
+    isolate_user_dirs();
+    App::with_test_client(client)
+}
+
 pub fn make_app(albums: Vec<Rc<Album>>, backend: MockBackend) -> App {
     let client = make_client(albums, backend);
-    let (app, _task) = App::with_test_client(client);
+    let (app, _task) = app_with_test_client(client);
     app
 }
 
 pub fn make_app_with<B: MpdBackend + 'static>(albums: Vec<Rc<Album>>, backend: B) -> App {
     let client = make_client_with(albums, backend);
-    let (app, _task) = App::with_test_client(client);
+    let (app, _task) = app_with_test_client(client);
     app
 }
 

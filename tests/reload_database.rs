@@ -19,7 +19,6 @@ mod common;
 
 use common::*;
 use plinth::mpd::playback::PlaybackClientError;
-use plinth::ui::App;
 use plinth::ui::AppState;
 use plinth::ui::types::Message;
 use std::rc::Rc;
@@ -63,7 +62,7 @@ fn reload_database_failing_backend_returns_error() {
 fn reload_database_noop_when_updating() {
     let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
     let backend = MockBackend::new();
-    let (mut app, _) = App::with_test_client(make_client(vec![album], backend));
+    let (mut app, _) = app_with_test_client(make_client(vec![album], backend));
 
     let task1 = app.update(Message::ReloadDatabase);
     let msgs1 = extract_task_messages(task1);
@@ -86,7 +85,7 @@ fn reload_database_noop_when_updating() {
 fn reload_database_clears_pending_when_update_ends_without_reload() {
     let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
     let backend = MockBackend::new();
-    let (mut app, _) = App::with_test_client(make_client(vec![album], backend));
+    let (mut app, _) = app_with_test_client(make_client(vec![album], backend));
 
     let task = app.update(Message::ReloadDatabase);
     let msgs = extract_task_messages(task);
@@ -128,7 +127,7 @@ fn reload_database_error_sets_app_error() {
 fn database_updated_success_clears_pending_and_reloads() {
     let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
     let backend = MockBackend::new();
-    let (mut app, _) = App::with_test_client(make_client(vec![album.clone()], backend));
+    let (mut app, _) = app_with_test_client(make_client(vec![album.clone()], backend));
 
     if let AppState::Running { playback_client, .. } = &mut app.state {
         playback_client.set_test_reload_result(Ok(Rc::new(vec![album])));
@@ -158,7 +157,7 @@ fn database_updated_success_clears_pending_and_reloads() {
 fn database_updated_error_sets_app_error() {
     let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
     let backend = MockBackend::new();
-    let (mut app, _) = App::with_test_client(make_client(vec![album], backend));
+    let (mut app, _) = app_with_test_client(make_client(vec![album], backend));
 
     if let AppState::Running { playback_client, .. } = &mut app.state {
         playback_client.set_test_reload_result(Err(PlaybackClientError::MPDRetrieveError("test reload failure".into())));
