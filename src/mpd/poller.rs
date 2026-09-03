@@ -101,7 +101,7 @@ impl Poller {
         }
     }
 
-     fn poll_status(&mut self) -> Result<Vec<Message>, PlaybackClientError> {
+    fn poll_status(&mut self) -> Result<Vec<Message>, PlaybackClientError> {
         let status = self.connection.get_status()?;
         let mut messages = Vec::new();
 
