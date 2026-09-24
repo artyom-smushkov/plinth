@@ -20,7 +20,7 @@ use std::rc::Rc;
 use crate::mpd::types::Album;
 use iced::{
     widget::{column, container, text},
-    Alignment, Element, Length,
+    Alignment, Element,
 };
 
 pub struct AlbumInfoWidget {
@@ -57,12 +57,10 @@ impl AlbumInfoWidget {
             .color(faded_color),
         ]
         .spacing(4)
-        .width(Length::Fixed(300.0))
         .align_x(Alignment::Start);
 
         container(info_column)
             .padding(16)
-            .width(Length::Fixed(300.0))
             .into()
     }
 
