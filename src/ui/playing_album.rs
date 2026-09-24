@@ -83,8 +83,6 @@ impl PlayingAlbumWidget {
             .map(|widget| widget.view());
         let tracklist = scrollable(Column::with_children(track_widgets).spacing(8).padding(10));
 
-        let info_and_tracklist = column![info_widget, tracklist].spacing(16);
-
         let settings = AppSettings::default();
         let theme = settings.theme();
         let extended = theme.extended_palette();
@@ -115,7 +113,13 @@ impl PlayingAlbumWidget {
         )
         .on_press(Message::RemoveAlbumFromQueue(qi));
 
-        let content_row = row![album_widget, info_and_tracklist, remove_button]
+        let upper_row = row![
+            container(info_widget).width(Length::Fill),
+            remove_button
+        ];
+        let right_column = column![upper_row, tracklist];
+
+        let content_row = row![album_widget, right_column]
             .spacing(20);
 
         mouse_area(container(content_row).width(Length::Fill))
