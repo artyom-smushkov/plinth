@@ -81,7 +81,7 @@ fn parse_tag_number_missing_tag() {
 #[test]
 fn parse_tag_number_fallback_keys() {
     let song = make_song_with_tags(vec![("DiscNumber", "2")]);
-    assert_eq!(parse_tag_number(&song, &["Disk", "DiscNumber"]), Some(2));
+    assert_eq!(parse_tag_number(&song, &["Disc", "DiscNumber"]), Some(2));
 }
 
 #[test]
@@ -186,8 +186,8 @@ fn build_albums_single_album() {
 
 #[test]
 fn parse_tag_number_disc_number_fallback() {
-    let song = make_song_with_tags(vec![("Disk", "2/4")]);
-    assert_eq!(parse_tag_number(&song, &["Disk", "DiscNumber"]), Some(2));
+    let song = make_song_with_tags(vec![("Disc", "2/4")]);
+    assert_eq!(parse_tag_number(&song, &["Disc", "DiscNumber"]), Some(2));
 }
 
 #[test]
