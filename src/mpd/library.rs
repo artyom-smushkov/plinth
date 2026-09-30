@@ -74,7 +74,7 @@ fn fetch_tracks(
         .map(|song| Track {
             title: song.title.clone().unwrap_or_else(|| song.file.clone()),
             artist: song.artist.clone().unwrap_or_default(),
-            cd_number: parse_tag_number(&song, &["Disk", "DiscNumber"]),
+            cd_number: parse_tag_number(&song, &["Disc", "DiscNumber"]),
             track_number: parse_tag_number(&song, &["Track"]),
             mpd_song: song,
         })
