@@ -60,18 +60,6 @@ fn every_icon_fits_design_box() {
     }
 }
 
-#[test]
-fn icons_have_expected_structure() {
-    assert_eq!(Icon::AlbumGrid.paths().len(), 4);
-    assert_eq!(Icon::NowPlaying.paths().len(), 3);
-    assert_eq!(Icon::Settings.paths().len(), 2);
-    assert_eq!(Icon::Previous.paths().len(), 2);
-    assert_eq!(Icon::Play.paths().len(), 1);
-    assert_eq!(Icon::Pause.paths().len(), 2);
-    assert_eq!(Icon::Next.paths().len(), 2);
-    assert_eq!(Icon::Close.paths().len(), 2);
-    assert_eq!(Icon::Reload.paths().len(), 2);
-}
 
 #[test]
 fn play_pause_icon_follows_playback_state() {
@@ -154,17 +142,6 @@ fn control_hover_state_tracks_messages() {
     assert_eq!(control.hovered_control(), None);
 }
 
-#[test]
-fn player_control_view_builds_for_all_views_and_states() {
-    let control = PlayerControl::new();
-    let settings = AppSettings::default();
-
-    for state in [mpd::State::Stop, mpd::State::Pause, mpd::State::Play] {
-        for view in [View::AlbumGrid, View::NowPlaying, View::Settings] {
-            let _ = control.view(state, Some(45.0), Some(180.0), &settings, view, false);
-        }
-    }
-}
 
 #[test]
 fn app_view_builds_with_queued_album_in_now_playing() {

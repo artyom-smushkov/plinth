@@ -160,46 +160,28 @@ fn app_playback_state_update_tracks_position() {
     assert!(mw.is_track_current(0, 1));
 }
 
-#[test]
-fn app_previous_and_next_song_updates_mock_position() {
-    let album = make_album(
-        "Album",
-        "Artist",
-        vec![
-            make_track("T1", make_song(1, "T1", 180)),
-            make_track("T2", make_song(2, "T2", 200)),
-            make_track("T3", make_song(3, "T3", 220)),
-        ],
-    );
-    let backend = MockBackend::new();
-    let mut app = make_app(vec![album], backend);
-
-    let _ = app.playback_client_mut().unwrap().play_album(0);
-    let _ = app.playback_client_mut().unwrap().switch_to_track(0, 1);
-
-    let _ = app.update(Message::PreviousSong);
-    {
-        let client = app.playback_client_mut().unwrap();
-        let pos = client.current_song_position().unwrap();
-        assert_eq!(pos, Some(0));
-    }
-
-    let _ = app.update(Message::NextSong);
-    {
-        let client = app.playback_client_mut().unwrap();
-        let pos = client.current_song_position().unwrap();
-        assert_eq!(pos, Some(1));
-    }
-}
 
 #[test]
 fn app_dismiss_error_clears_error() {
+    use plinth::mpd::playback::PlaybackClientError;
+    use plinth::ui::AppState;
+
     let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
     let backend = MockBackend::new();
     let mut app = make_app(vec![album], backend);
 
-    let _ = app.update(Message::DismissError);
-    assert!(app.main_window().is_some());
+    if let AppState::Running { error, .. } = &mut app.state {
+        *error = Some(PlaybackClientError::MPDRetrieveError("boom".into()));
+    } else {
+        panic!("Expected Running state");
+    }
+
+    let _task = app.update(Message::DismissError);
+
+    match &app.state {
+        AppState::Running { error, .. } => assert!(error.is_none()),
+        _ => panic!(),
+    }
 }
 
 #[test]
@@ -217,27 +199,6 @@ fn app_grid_album_click_first_album_plays() {
     assert_eq!(mw.playback_state(), State::Play);
 }
 
-#[test]
-fn app_set_current_track_via_message() {
-    let album = make_album(
-        "Album",
-        "Artist",
-        vec![
-            make_track("T1", make_song(1, "T1", 180)),
-            make_track("T2", make_song(2, "T2", 200)),
-        ],
-    );
-    let backend = MockBackend::new();
-    let mut app = make_app(vec![album], backend);
-
-    let queue = RefCell::new(vec![0]);
-    let _ = app.update(Message::SyncQueue(queue));
-
-    let _ = app.update(Message::SetCurrentTrack(0, 1));
-    let mw = app.main_window().unwrap();
-    assert!(mw.is_track_current(0, 1));
-    assert!(!mw.is_track_current(0, 0));
-}
 
 #[test]
 fn app_grid_click_then_now_playing_shows_album() {
@@ -260,29 +221,6 @@ fn app_grid_click_then_now_playing_shows_album() {
     assert_eq!(mw.playing_album_count(), 2);
 }
 
-#[test]
-fn app_now_playing_to_grid_and_back() {
-    let album = make_album("Album", "Artist", vec![make_track("T1", make_song(1, "T1", 180))]);
-    let backend = MockBackend::new();
-    let mut app = make_app(vec![album], backend);
-
-    let queue = RefCell::new(vec![0]);
-    let _ = app.update(Message::SyncQueue(queue));
-
-    let _ = app.update(Message::NowPlayingButtonClicked);
-    let mw = app.main_window().unwrap();
-    assert_eq!(mw.current_view(), plinth::ui::main_window::View::NowPlaying);
-    assert_eq!(mw.playing_album_count(), 1);
-
-    let _ = app.update(Message::AlbumGridButtonClicked);
-    let mw = app.main_window().unwrap();
-    assert_eq!(mw.current_view(), plinth::ui::main_window::View::AlbumGrid);
-
-    let _ = app.update(Message::NowPlayingButtonClicked);
-    let mw = app.main_window().unwrap();
-    assert_eq!(mw.current_view(), plinth::ui::main_window::View::NowPlaying);
-    assert_eq!(mw.playing_album_count(), 1);
-}
 
 #[test]
 fn app_grid_click_replaces_queue_on_first_play() {

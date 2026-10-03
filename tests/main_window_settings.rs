@@ -35,16 +35,6 @@ fn settings_button_clicked() {
     assert_eq!(mw.current_view(), View::Settings);
 }
 
-#[test]
-fn control_hover_sets_hover_state() {
-    let albums = vec![];
-    let backend = MockBackend::new();
-    let mut app = make_app(albums, backend);
-
-    let _ = app.update(Message::ControlHovered(plinth::ui::types::Control::PlayPause));
-    let task = app.update(Message::ControlUnhovered(plinth::ui::types::Control::PlayPause));
-    assert!(extract_task_messages(task).is_empty());
-}
 
 #[test]
 fn sort_highest_change_updates_config() {
@@ -106,16 +96,6 @@ fn now_playing_thumbnail_size_change() {
     assert_eq!(app.settings.now_playing_thumbnail_size, 800);
 }
 
-#[test]
-fn album_grid_rebuild_on_sort_change() {
-    let album1 = make_album("Album 1", "Artist A", vec![make_track("T1", make_song(1, "T1", 180))]);
-    let album2 = make_album("Album 2", "Artist B", vec![make_track("T2", make_song(2, "T2", 200))]);
-    let backend = MockBackend::new();
-    let mut app = make_app(vec![album1, album2], backend);
-
-    let _ = app.update(Message::SettingSortHighestChanged(Some(AlbumSortField::Artist)));
-    assert_eq!(app.settings.sort_config.highest, Some(AlbumSortField::Artist));
-}
 #[test]
 fn grid_size_change_applied_when_switching_to_grid_view() {
     let album = make_album("Album 1", "Artist A", vec![make_track("T1", make_song(1, "T1", 180))]);

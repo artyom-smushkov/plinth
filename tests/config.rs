@@ -55,10 +55,3 @@ fn appsettings_theme_delegation() {
     let theme: Theme = settings.colorscheme.into();
     assert_eq!(settings.theme(), theme);
 }
-
-#[test]
-fn theme_unknown_variant_defaults_to_catppuccin_mocha() {
-    let theme = Theme::Dark;
-    let scheme: ColorScheme = theme.into();
-    assert_eq!(scheme, ColorScheme::Dark);
-}

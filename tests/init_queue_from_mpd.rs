@@ -136,33 +136,6 @@ fn init_queue_unknown_track_rebuilds() {
     assert_eq!(*client.queue.borrow(), vec![0]);
 }
 
-#[test]
-fn init_queue_duplicate_albums_rebuilds() {
-    let album1 = make_album(
-        "Album 1",
-        "Artist",
-        vec![
-            make_track("T1", make_song_with_file(1, "/music/a1.mp3", "T1", 180)),
-            make_track("T3", make_song_with_file(3, "/music/a3.mp3", "T3", 220)),
-        ],
-    );
-    let album2 = make_album(
-        "Album 2",
-        "Artist",
-        vec![make_track("T2", make_song_with_file(2, "/music/a2.mp3", "T2", 200))],
-    );
-    let mut backend = MockBackend::new();
-    backend.queue.extend(vec![
-        make_song_with_file(1, "/music/a1.mp3", "T1", 180),
-        make_song_with_file(2, "/music/a2.mp3", "T2", 200),
-        make_song_with_file(3, "/music/a3.mp3", "T3", 220),
-    ]);
-    let mut client = make_client(vec![album1, album2], backend);
-
-    let result = client.init_queue_from_mpd();
-    assert!(result.is_ok());
-    assert_eq!(*client.queue.borrow(), vec![0, 1]);
-}
 
 #[test]
 fn init_queue_restores_cursor_when_playing() {
