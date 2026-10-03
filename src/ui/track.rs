@@ -100,23 +100,23 @@ impl TrackWidget {
 
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
-            Message::TrackHovered(album_idx, track_idx) => {
-                if self.queue_index == album_idx && self.track_index == track_idx {
+            Message::TrackHovered(_album_idx, track_idx) => {
+                if self.track_index == track_idx {
                     self.hovered = true;
                 }
             }
-            Message::TrackUnhovered(album_idx, track_idx) => {
-                if self.queue_index == album_idx && self.track_index == track_idx {
+            Message::TrackUnhovered(_album_idx, track_idx) => {
+                if self.track_index == track_idx {
                     self.hovered = false;
                 }
             }
-            Message::TrackStartedPlaying(album_idx, track_idx) => {
-                if self.queue_index == album_idx && self.track_index == track_idx {
+            Message::TrackStartedPlaying(_album_idx, track_idx) => {
+                if self.track_index == track_idx {
                     self.is_current_track = true;
                 }
             }
-            Message::TrackEndedPlaying(album_idx, track_idx) => {
-                if self.queue_index == album_idx && self.track_index == track_idx {
+            Message::TrackEndedPlaying(_album_idx, track_idx) => {
+                if self.track_index == track_idx {
                     self.is_current_track = false;
                 }
             }

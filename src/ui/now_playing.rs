@@ -116,8 +116,8 @@ impl NowPlayingWidget {
                 Task::none()
             }
             Message::SetCurrentTrack(album_idx, track_idx) => {
-                if let Some(playing_album) = self.playing_album_widgets.get_mut(album_idx) {
-                    return playing_album.update(Message::SetCurrentTrack(album_idx, track_idx));
+                for playing_album in self.playing_album_widgets.iter_mut() {
+                    let _ = playing_album.update(Message::SetCurrentTrack(album_idx, track_idx));
                 }
                 Task::none()
             }

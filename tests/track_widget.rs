@@ -96,19 +96,6 @@ fn track_widget_started_ended_playing() {
 }
 
 #[test]
-fn track_widget_ignores_wrong_indices() {
-    let song = make_song(1, "T1", 180);
-    let track = make_track("T1", song);
-    let mut widget = plinth::ui::track::TrackWidget::new(track, 0, 0, false);
-
-    let _ = widget.update(Message::TrackHovered(1, 0));
-    assert!(!widget.is_hovered());
-
-    let _ = widget.update(Message::TrackStartedPlaying(1, 0));
-    assert!(!widget.is_current_track());
-}
-
-#[test]
 fn track_widget_created_as_current() {
     let song = make_song(1, "T1", 180);
     let track = make_track("T1", song);

@@ -154,16 +154,14 @@ impl PlayingAlbumWidget {
                 Task::none()
             }
             Message::SetCurrentTrack(album_idx, track_idx) => {
-                if self.queue_index == album_idx {
-                    self.current_track_index = track_idx;
-                    for (idx, widget) in self.track_widgets.iter_mut().enumerate() {
-                        let msg = if idx == track_idx {
-                            Message::TrackStartedPlaying(album_idx, idx)
-                        } else {
-                            Message::TrackEndedPlaying(album_idx, idx)
-                        };
-                        let _ = widget.update(msg);
-                    }
+                self.current_track_index = track_idx;
+                for (idx, widget) in self.track_widgets.iter_mut().enumerate() {
+                    let msg = if self.queue_index == album_idx && idx == track_idx{
+                        Message::TrackStartedPlaying(album_idx, idx)
+                    } else {
+                        Message::TrackEndedPlaying(album_idx, idx)
+                    };
+                    let _ = widget.update(msg);
                 }
                 Task::none()
             }
